@@ -1,0 +1,288 @@
+openapi: 3.0.0
+info:
+  title: API de Usuarios
+  description: API para gestionar usuarios con operaciones CRUD, autenticación y paginación.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:9090
+    description: Servidor local
+
+paths:
+  /users:
+    post:
+      summary: Registrar un nuevo usuario
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        "201":
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        "400":
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Correo ya registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "503":
+          description: Servicio no disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-content-type: application/json
+      x-accepts:
+        - application/json
+
+    get:
+      summary: Obtener lista de usuarios con paginación
+      operationId: getUsers
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Lista de usuarios paginada
+        "401":
+          description: No autorizado
+        "403":
+          description: Prohibido
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible
+
+  /users/{id}:
+    get:
+      summary: Obtener un usuario por ID
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usuario encontrado
+        "401":
+          description: No autorizado
+        "403":
+          description: Prohibido
+        "404":
+          description: No encontrado
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible
+
+    put:
+      summary: Actualizar un usuario
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        "200":
+          description: Usuario actualizado correctamente
+        "400":
+          description: Solicitud incorrecta
+        "401":
+          description: No autorizado
+        "403":
+          description: Prohibido
+        "404":
+          description: No encontrado
+        "409":
+          description: Conflicto
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible
+
+    delete:
+      summary: Eliminar un usuario
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usuario eliminado correctamente
+        "401":
+          description: No autorizado
+        "403":
+          description: Prohibido
+        "404":
+          description: No encontrado
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible
+
+  /users/{id}/password:
+    patch:
+      summary: Actualizar la contraseña de un usuario
+      operationId: updateUserPassword
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdate'
+      responses:
+        "200":
+          description: Contraseña actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Datos de entrada inválidos
+        "401":
+          description: No autorizado
+        "403":
+          description: Prohibido
+        "404":
+          description: Usuario no encontrado
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible
+      security:
+        - BearerAuth: []
+
+components:
+  schemas:
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          type: string
+          minLength: 8
+          pattern: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).*$"
+        fullName:
+          type: string
+          maxLength: 100
+        dateBirth:
+          type: string
+          format: date
+        rol:
+          type: string
+          enum: [user, admin]
+          default: user
+      required:
+        - email
+        - password
+        - fullName
+
+    PasswordUpdate:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          pattern: "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).*$"
+      required:
+        - currentPassword
+        - newPassword
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        dateBirth:
+          type: string
+          format: date
+        rol:
+          type: string
+      required:
+        - id
+        - email
+        - fullName
+        - rol
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
