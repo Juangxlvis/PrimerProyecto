@@ -5,12 +5,14 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.time.LocalDate;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 
 import java.util.*;
 import jakarta.annotation.Generated;
@@ -18,7 +20,8 @@ import jakarta.annotation.Generated;
 /**
  * UserResponse
  */
-
+@Getter
+@Setter
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2025-02-20T21:07:46.519360700-05:00[America/Bogota]", comments = "Generator version: 7.7.0")
 public class UserResponse {
 
@@ -31,7 +34,9 @@ public class UserResponse {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate dateBirth;
 
-  private String rol;
+  private String role;
+
+  private String password;
 
   public UserResponse() {
     super();
@@ -40,11 +45,12 @@ public class UserResponse {
   /**
    * Constructor with only required parameters
    */
-  public UserResponse(String id, String email, String fullName, String rol) {
+  public UserResponse(String id, String email, String fullName, String role, String password) {
     this.id = id;
     this.email = email;
     this.fullName = fullName;
-    this.rol = rol;
+    this.role = role;
+    this.password = password;
   }
 
   public UserResponse id(String id) {
@@ -52,10 +58,6 @@ public class UserResponse {
     return this;
   }
 
-  /**
-   * Get id
-   * @return id
-   */
   @NotNull
   @Schema(name = "id", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("id")
@@ -63,19 +65,11 @@ public class UserResponse {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public UserResponse email(String email) {
+    public UserResponse email(String email) {
     this.email = email;
     return this;
   }
 
-  /**
-   * Get email
-   * @return email
-   */
   @NotNull
   @Schema(name = "email", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("email")
@@ -83,19 +77,11 @@ public class UserResponse {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public UserResponse fullName(String fullName) {
+    public UserResponse fullName(String fullName) {
     this.fullName = fullName;
     return this;
   }
 
-  /**
-   * Get fullName
-   * @return fullName
-   */
   @NotNull
   @Schema(name = "fullName", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("fullName")
@@ -103,19 +89,11 @@ public class UserResponse {
     return fullName;
   }
 
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
-  }
-
-  public UserResponse dateBirth(LocalDate dateBirth) {
+    public UserResponse dateBirth(LocalDate dateBirth) {
     this.dateBirth = dateBirth;
     return this;
   }
 
-  /**
-   * Get dateBirth
-   * @return dateBirth
-   */
   @Valid
   @Schema(name = "dateBirth", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("dateBirth")
@@ -123,31 +101,31 @@ public class UserResponse {
     return dateBirth;
   }
 
-  public void setDateBirth(LocalDate dateBirth) {
-    this.dateBirth = dateBirth;
-  }
-
-  public UserResponse rol(String rol) {
-    this.rol = rol;
+    public UserResponse role(String role) {
+    this.role = role;
     return this;
   }
 
-  /**
-   * Get rol
-   * @return rol
-   */
   @NotNull
-  @Schema(name = "rol", requiredMode = Schema.RequiredMode.REQUIRED)
-  @JsonProperty("rol")
-  public String getRol() {
-    return rol;
+  @Schema(name = "role", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("role")
+  public String getRole() {
+    return role;
   }
 
-  public void setRol(String rol) {
-    this.rol = rol;
+    public UserResponse password(String password) {
+    this.password = password;
+    return this;
   }
 
-  @Override
+  @NotNull
+  @Schema(name = "password", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("password")
+  public String getPassword() {
+    return password;
+  }
+
+    @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -160,12 +138,13 @@ public class UserResponse {
             Objects.equals(this.email, userResponse.email) &&
             Objects.equals(this.fullName, userResponse.fullName) &&
             Objects.equals(this.dateBirth, userResponse.dateBirth) &&
-            Objects.equals(this.rol, userResponse.rol);
+            Objects.equals(this.role, userResponse.role) &&
+            Objects.equals(this.password, userResponse.password);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, email, fullName, dateBirth, rol);
+    return Objects.hash(id, email, fullName, dateBirth, role, password);
   }
 
   @Override
@@ -176,15 +155,12 @@ public class UserResponse {
     sb.append("    email: ").append(toIndentedString(email)).append("\n");
     sb.append("    fullName: ").append(toIndentedString(fullName)).append("\n");
     sb.append("    dateBirth: ").append(toIndentedString(dateBirth)).append("\n");
-    sb.append("    rol: ").append(toIndentedString(rol)).append("\n");
+    sb.append("    role: ").append(toIndentedString(role)).append("\n");
+    sb.append("    password: ").append(toIndentedString(password)).append("\n");
     sb.append("}");
     return sb.toString();
   }
 
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
   private String toIndentedString(Object o) {
     if (o == null) {
       return "null";

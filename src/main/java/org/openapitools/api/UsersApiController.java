@@ -2,14 +2,13 @@ package org.openapitools.api;
 
 import lombok.RequiredArgsConstructor;
 import org.openapitools.exception.EmailAlreadyExistsException;
-import org.openapitools.model.ErrorResponse;
-import org.openapitools.model.SuccessResponse;
-import org.openapitools.model.UserRegistration;
-import org.openapitools.model.UserResponse;
+import org.openapitools.exception.InvalidDataException;
+import org.openapitools.model.*;
 import org.openapitools.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -27,11 +26,13 @@ public class UsersApiController {
 
     private final UserService userService;
     private final NativeWebRequest request;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UsersApiController(UserService userService, NativeWebRequest request) {
+    public UsersApiController(UserService userService, NativeWebRequest request, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.request = request;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
@@ -91,6 +92,30 @@ public class UsersApiController {
                 .body(new ErrorResponse("Not Found", "User not found"));
     }
 
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<?> updateUserPassword(
+            @PathVariable String id,
+            @Valid @RequestBody PasswordUpdate passwordUpdate) {
+
+        Optional<UserResponse> userOptional = userService.getUserById(id);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("Not Found", "User not found"));
+        }
+
+        UserResponse user = userOptional.get();
+
+        // Verificar si la contraseña actual es correcta
+        if (!passwordEncoder.matches(passwordUpdate.getCurrentPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Bad Request", "Incorrect current password"));
+        }
+
+        // Actualizar la nueva contraseña encriptada
+        userService.updateUserPassword(id, passwordEncoder.encode(passwordUpdate.getNewPassword()), passwordUpdate.getCurrentPassword());
+
+        return ResponseEntity.ok(new SuccessResponse("Password updated successfully"));
+    }
 
 
 }
