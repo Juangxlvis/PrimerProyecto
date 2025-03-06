@@ -1,11 +1,10 @@
 package org.openapitools.service;
 
 import jakarta.validation.constraints.NotNull;
-import org.openapitools.exception.EmailAlreadyExistsException;
-import org.openapitools.exception.InvalidPasswordException;
-import org.openapitools.exception.UserNotFoundException;
+import org.openapitools.exception.*;
 import org.openapitools.model.UserRegistration;
 import org.openapitools.model.UserResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -18,6 +17,11 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final List<UserResponse> users = new ArrayList<>();
+    private final PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
 
     @Override
@@ -25,12 +29,18 @@ public class UserServiceImpl implements UserService {
         boolean emailExists = users.stream()
                 .anyMatch(user -> user.getEmail().equals(userRegistration.getEmail()));
 
-        if (emailExists) {
-            throw new EmailAlreadyExistsException("El correo ya está registrado.");
+        boolean idExists = users.stream()
+                .anyMatch(user -> user.getId().equals(userRegistration.getId()));
+
+        if (emailExists || idExists) {
+            throw new UserAlreadyExistsException("El ID o el correo ya están registrados.");
+        }
+        if (!isValidPassword(userRegistration.getPassword())) {
+            throw new WeakPasswordException("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.");
         }
         UserResponse userCreated = new UserResponse();
         userCreated.setId(userRegistration.getId());
-        userCreated.setPassword(userRegistration.getPassword());
+        userCreated.setPassword(passwordEncoder.encode(userRegistration.getPassword()));
         userCreated.setFullName(userRegistration.getFullName());
         userCreated.setEmail(userRegistration.getEmail());
         userCreated.setDateBirth(userRegistration.getDateBirth());
@@ -38,6 +48,11 @@ public class UserServiceImpl implements UserService {
         users.add(userCreated);
 
         return userCreated;
+    }
+
+    private boolean isValidPassword(String password) {
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        return password.matches(passwordPattern);
     }
 
     @Override
@@ -77,13 +92,24 @@ public class UserServiceImpl implements UserService {
         UserResponse user = optionalUser.get();
 
         // Validar que la contraseña actual coincida
-        if (!user.getPassword().equals(currentPassword)) {
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new InvalidPasswordException("La contraseña actual es incorrecta.");
         }
 
         // Actualizar la contraseña con la nueva encriptada
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         return user;
+    }
+
+    public UserResponse updateUser(String id, UserRegistration request) {
+        Optional<UserResponse> existingUser = getUserById(id);
+
+        if (existingUser.isEmpty()) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        deleteUser(id); // Eliminar usuario antiguo
+        return createUser(request); // Crear usuario actualizado
     }
 
 }

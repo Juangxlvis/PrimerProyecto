@@ -1,8 +1,7 @@
 package org.openapitools.api;
 
 import lombok.RequiredArgsConstructor;
-import org.openapitools.exception.EmailAlreadyExistsException;
-import org.openapitools.exception.InvalidDataException;
+import org.openapitools.exception.*;
 import org.openapitools.model.*;
 import org.openapitools.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +39,12 @@ public class UsersApiController {
         try {
             UserResponse user = userService.createUser(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
-        } catch (EmailAlreadyExistsException e) {
+        } catch (EmailAlreadyExistsException | UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Conflict", e.getMessage()));
-        } catch (InvalidDataException e) {
+        } catch (InvalidDataException | WeakPasswordException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Bad Request", e.getMessage()));
         }
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable String id) {
@@ -66,19 +64,15 @@ public class UsersApiController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserRegistration request) {
         try {
-            Optional<UserResponse> existingUser = userService.getUserById(id);
-            if (existingUser.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ErrorResponse("Not Found", "User not found"));
-            }
-
-            userService.deleteUser(id); // Eliminar el usuario existente
-            UserResponse updatedUser = userService.createUser(request); // Crear el usuario actualizado
+            UserResponse updatedUser = userService.updateUser(id, request);
             return ResponseEntity.ok(updatedUser);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Not Found", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Bad Request", e.getMessage()));
         }
     }
+
 
 
     @DeleteMapping("/{id}")

@@ -27,7 +27,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserResponse'
         "400":
-          description: Datos de entrada inválidos
+          description: Datos de entrada inválidos o la Contraseña no cumple con los requisitos mínimos
           content:
             application/json:
               schema:
@@ -35,7 +35,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/ErrorResponse'
         "409":
-          description: Correo ya registrado
+          description: El ID o Correo ya están registrados
           content:
             application/json:
               schema:

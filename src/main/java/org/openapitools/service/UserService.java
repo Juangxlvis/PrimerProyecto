@@ -18,4 +18,6 @@ public interface UserService {
     Optional<UserResponse> getUserById(@NotNull String id);
 
     UserResponse updateUserPassword(@NotNull String id, @NotNull String newPassword, @NotNull String currentPassword);
+
+    UserResponse updateUser(@NotNull String id, UserRegistration request);
 }
